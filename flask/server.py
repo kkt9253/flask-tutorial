@@ -9,24 +9,28 @@ topics = [
     {'id': 3, 'title': 'javascript', 'body': 'javascript is ...'}
 ]
 
-
-@app.route('/')
-def index():
-    liTags = ''
-    for topic in topics:
-        liTags = liTags + f'<li><a href="/read/{topic["id"]}/">{topic["title"]}</a></li>'
+def template(contents, content):
     return f'''<!doctype html>
     <html>
         <body>
             <h1><a href="/">WEB</a></h1>
             <ol>
-                {liTags}
+                {contents}
             </ol>
-            <h2>Welcome</h2>
-            Hello, Web
+            {content}
         </body>
     </html>
     '''
+
+def getContents():
+    liTags = ''
+    for topic in topics:
+        liTags += f'<li><a href="/read/{topic["id"]}/">{topic["title"]}</a></li>'
+    return liTags
+
+@app.route('/')
+def index():
+    return template(getContents(), '<h2>Welcome</h2>Hello, WEB!!!')
 
 
 @app.route('/create/')
@@ -36,25 +40,13 @@ def create():
 
 @app.route('/read/<int:id>/') # <int:id> => 정수로 받음
 def read(id):
-    liTags = ''
     title = ''
     body = ''
     for topic in topics:
-        liTags = liTags + f'<li><a href="/read/{topic["id"]}/">{topic["title"]}</a></li>'
         if id == topic['id']: # <int:id>를 안쓰면 이곳에서 str로 받아서 안됨
             title = topic['title']
             body = topic['body']
-    return f'''<!doctype html>
-    <html>
-        <body>
-            <h1><a href="/">WEB</a></h1>
-            <ol>
-                {liTags}
-            </ol>
-            <h2>{title}</h2>
-            {body}
-        </body>
-    </html>
-    '''
+            break
+    return template(getContents(), f'<h2>{title}</h2>{body}')
 
 app.run(debug=True)

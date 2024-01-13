@@ -9,7 +9,12 @@ topics = [
     {'id': 3, 'title': 'javascript', 'body': 'javascript is ...'}
 ]
 
-def template(contents, content):
+def template(contents, content, id=None):
+    ContextUI = ''
+    if id != None:
+        ContextUI = f'''
+            <li><a href="/update/{id}/">update</a></li>
+        '''
     return f'''<!doctype html>
     <html>
         <body>
@@ -20,6 +25,7 @@ def template(contents, content):
             {content}
             <ul>
                 <li><a href="/create/">create</a></li>
+                {ContextUI}
             </ul>
         </body>
     </html>
@@ -47,7 +53,7 @@ def read(id):
             title = topic['title']
             body = topic['body']
             break
-    return template(getContents(), f'<h2>{title}</h2>{body}')
+    return template(getContents(), f'<h2>{title}</h2>{body}', id)
 
 
 @app.route('/create/', methods=['GET', 'POST'])
@@ -70,5 +76,36 @@ def create():
         url = '/read/'+str(nextId)+'/'
         nextId += 1
         return redirect(url)
+    
+    
+@app.route('/update/<int:id>/', methods=['GET', 'POST'])
+def update(id):
+    if request.method == 'GET':
+        title = ''
+        body = ''
+        for topic in topics:
+            if id == topic['id']:
+                title = topic['title']
+                body = topic['body']
+                break
+        content = f'''
+            <form action="/update/{id}/" method="POST">
+                <p><input type="text" name="title" value="{title}"></p>
+                <p><textarea name="body">{body}</textarea></p>
+                <p><input type="submit" value="update"></p>
+            </form>
+        '''
+        return template(getContents(), content)
+    elif request.method == 'POST':
+        title = request.form['title']
+        body = request.form['body']
+        for topic in topics:
+            if id == topic['id']:
+                topic['title'] = title
+                topic['body'] = body
+                break
+        url = '/read/'+str(id)+'/'
+        return redirect(url)
+
 
 app.run(debug=True)
